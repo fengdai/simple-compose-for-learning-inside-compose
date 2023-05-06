@@ -16,7 +16,6 @@ internal object GlobalSnapshotManager {
 
     private val scheduleScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    @OptIn(ExperimentalComposeApi::class)
     fun ensureStarted() {
         if (!started) {
             started = true
@@ -24,7 +23,6 @@ internal object GlobalSnapshotManager {
         }
     }
 
-    @OptIn(ExperimentalComposeApi::class)
     private val globalWriteObserver: (Any) -> Unit = {
         // Race, but we don't care too much if we end up with multiple calls scheduled.
         if (!commitPending) {

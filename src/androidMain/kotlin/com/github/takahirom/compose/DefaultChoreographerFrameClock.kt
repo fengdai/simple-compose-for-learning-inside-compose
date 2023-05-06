@@ -13,7 +13,7 @@ object DefaultChoreographerFrameClock : MonotonicFrameClock {
 
     override suspend fun <R> withFrameNanos(
         onFrame: (frameTimeNanos: Long) -> R
-    ): R = suspendCancellableCoroutine<R> { co ->
+    ): R = suspendCancellableCoroutine { co ->
         val callback = Choreographer.FrameCallback { frameTimeNanos ->
             co.resumeWith(runCatching { onFrame(frameTimeNanos) })
         }

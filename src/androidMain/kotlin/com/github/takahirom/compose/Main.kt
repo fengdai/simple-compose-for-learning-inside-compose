@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -40,7 +39,6 @@ sealed class Node {
 }
 
 
-@OptIn(InternalCoroutinesApi::class)
 fun runApp() {
     val composer = Recomposer(Dispatchers.Main)
 
