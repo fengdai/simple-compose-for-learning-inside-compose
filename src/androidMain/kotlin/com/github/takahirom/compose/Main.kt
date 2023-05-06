@@ -2,42 +2,23 @@
 
 package com.github.takahirom.compose
 
+import android.util.Log
 import androidx.compose.runtime.AbstractApplier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Composition
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Recomposer
 import androidx.compose.runtime.ReusableComposeNode
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 
-
-sealed class Node {
-    val children = mutableListOf<Node>()
-
-    class RootNode : Node() {
-        override fun toString(): String {
-            return rootNodeToString()
-        }
-    }
-
-    data class Node1(
-        var name: String = "",
-    ) : Node()
-
-    data class Node2(
-        var name: String = "",
-    ) : Node()
+data class TreeNode(
+    var name: String
+) {
+    val children = mutableListOf<TreeNode>()
 }
-
 
 fun runApp() {
     val composer = Recomposer(Dispatchers.Main)
@@ -48,20 +29,19 @@ fun runApp() {
         composer.runRecomposeAndApplyChanges()
     }
 
-    val rootNode = Node.RootNode()
-    Composition(NodeApplier(rootNode), composer).apply {
+    val rootNode = TreeNode("Root")
+    Composition(TreeNodeApplier(rootNode), composer).apply {
         setContent {
             Content()
         }
         launchNodeLogger(mainScope, rootNode)
         launchComposeInsideLogger(composer, mainScope)
     }
-
 }
 
 private fun launchNodeLogger(
     mainScope: CoroutineScope,
-    node: Node.RootNode
+    node: TreeNode
 ) {
     mainScope.launch {
         var nodeString = ""
@@ -78,55 +58,46 @@ private fun launchNodeLogger(
 
 @Composable
 fun Content() {
-    var state by remember { mutableStateOf(true) }
-    LaunchedEffect(Unit) {
-        delay(10000)
-        state = false
+    Node("1") {
+        Node("2") {
+            Node("4")
+            Node("5")
+        }
+        Node("3")
     }
-    if (state) {
-        Node1()
-    }
-    Node2()
 }
 
 @Composable
-private fun Node1(name: String = "node1") {
-    ReusableComposeNode<Node.Node1, NodeApplier>(
+private fun Node(
+    name: String,
+    content: @Composable () -> Unit = {}
+) {
+    ReusableComposeNode<TreeNode, TreeNodeApplier>(
         factory = {
-            Node.Node1()
+            TreeNode(name)
         },
         update = {
             set(name) { this.name = it }
         },
+        content = content
     )
 }
 
-@Composable
-private fun Node2(name: String = "node2") {
-    ReusableComposeNode<Node.Node2, NodeApplier>(
-        factory = {
-            Node.Node2()
-        },
-        update = {
-            set(name) { this.name = it }
-        },
-    )
-}
-
-
-class NodeApplier(node: Node) : AbstractApplier<Node>(node) {
+class TreeNodeApplier(node: TreeNode) : AbstractApplier<TreeNode>(node) {
     override fun onClear() {
         println("onClear")
         current.children.clear()
     }
 
-    override fun insertBottomUp(index: Int, instance: Node) {
+    override fun insertBottomUp(index: Int, instance: TreeNode) {
         // use top down
+        Log.d("TreeNodeApplier", "insertBottomUp: ${instance.name}")
     }
 
-    override fun insertTopDown(index: Int, instance: Node) {
+    override fun insertTopDown(index: Int, instance: TreeNode) {
         println("insert$index")
         current.children.add(index, instance)
+        Log.d("TreeNodeApplier", "insertTopDown: ${instance.name}")
     }
 
     override fun move(from: Int, to: Int, count: Int) {

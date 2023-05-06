@@ -1,6 +1,6 @@
 package com.github.takahirom.compose
 
-fun Node.RootNode.rootNodeToString(): String {
+fun TreeNode.rootNodeToString(): String {
     return buildString {
         appendLine("RootNode")
         children.forEachIndexed { index, node ->
@@ -12,4 +12,3 @@ fun Node.RootNode.rootNodeToString(): String {
         }
     }
 }
-
